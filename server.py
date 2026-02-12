@@ -1,8 +1,10 @@
 """MIMIC-IV Demo MCP Server for ChatGPT Apps SDK."""
 
 import contextlib
+import os
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Mount
@@ -13,11 +15,65 @@ from tools import patients, labs, admissions, vitals, health
 # Server
 # ---------------------------------------------------------------------------
 
+
+def _env_csv(name: str) -> list[str]:
+    raw = os.getenv(name, "")
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def _transport_security_settings() -> TransportSecuritySettings:
+    if os.getenv("MCP_DISABLE_DNS_REBINDING_PROTECTION", "").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
+        return TransportSecuritySettings(enable_dns_rebinding_protection=False)
+
+    allowed_hosts = _env_csv("MCP_ALLOWED_HOSTS")
+    allowed_origins = _env_csv("MCP_ALLOWED_ORIGINS")
+
+    # Defaults cover local development and Vercel deployments.
+    if not allowed_hosts:
+        allowed_hosts = [
+            "localhost",
+            "localhost:*",
+            "127.0.0.1",
+            "127.0.0.1:*",
+        ]
+        vercel_url = os.getenv("VERCEL_URL")
+        if vercel_url:
+            allowed_hosts.append(vercel_url)
+
+    if not allowed_origins:
+        allowed_origins = [
+            "http://localhost",
+            "http://localhost:*",
+            "http://127.0.0.1",
+            "http://127.0.0.1:*",
+        ]
+        vercel_url = os.getenv("VERCEL_URL")
+        if vercel_url:
+            allowed_origins.extend(
+                [
+                    f"https://{vercel_url}",
+                    f"http://{vercel_url}",
+                ]
+            )
+
+    return TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=allowed_hosts,
+        allowed_origins=allowed_origins,
+    )
+
+
 mcp = FastMCP(
     "mimic-iv-demo",
     stateless_http=True,
     json_response=True,
     streamable_http_path="/",
+    transport_security=_transport_security_settings(),
 )
 
 
