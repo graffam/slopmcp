@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:developers.openai.com)",
+      "Bash(uv venv:*)",
+      "Bash(uv pip install:*)",
+      "Bash(.venv/bin/python:*)",
+      "Bash(/Users/amgraff/mimic_gpt_/.venv/bin/python:*)",
+      "Bash(/Users/amgraff/mimic_gpt_/.venv/bin/pip install:*)"
+    ]
+  }
+}

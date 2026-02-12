@@ -1,0 +1,8 @@
+mcp[cli]>=1.20.0
+duckdb>=1.1.0
+uvicorn
+httpx
+python-dotenv
+starlette
+pandas
+numpy
