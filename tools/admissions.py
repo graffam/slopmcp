@@ -20,6 +20,8 @@ def register(mcp: FastMCP) -> None:
             "openai/toolInvocation/invoking": "Loading admissions...",
             "openai/toolInvocation/invoked": "Admissions loaded",
             "ui": {"resourceUri": "ui://mimic-iv-demo/admissions.html"},
+            "ui/resourceUri": "ui://mimic-iv-demo/admissions.html",
+            "openai/outputTemplate": "ui://mimic-iv-demo/admissions.html",
         },
     )
     def get_admissions(subject_id: int) -> CallToolResult:
@@ -107,6 +109,8 @@ def register(mcp: FastMCP) -> None:
             "openai/toolInvocation/invoking": "Loading diagnoses...",
             "openai/toolInvocation/invoked": "Diagnoses loaded",
             "ui": {"resourceUri": "ui://mimic-iv-demo/diagnoses.html"},
+            "ui/resourceUri": "ui://mimic-iv-demo/diagnoses.html",
+            "openai/outputTemplate": "ui://mimic-iv-demo/diagnoses.html",
         },
     )
     def get_diagnoses(hadm_id: int) -> CallToolResult:
@@ -176,6 +180,8 @@ def register(mcp: FastMCP) -> None:
             "openai/toolInvocation/invoking": "Loading prescriptions...",
             "openai/toolInvocation/invoked": "Prescriptions loaded",
             "ui": {"resourceUri": "ui://mimic-iv-demo/prescriptions.html"},
+            "ui/resourceUri": "ui://mimic-iv-demo/prescriptions.html",
+            "openai/outputTemplate": "ui://mimic-iv-demo/prescriptions.html",
         },
     )
     def get_prescriptions(hadm_id: int) -> CallToolResult:

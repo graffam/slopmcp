@@ -6,7 +6,7 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-MIME_TYPE = "text/html;profile=mcp-app"
+MIME_TYPE = "text/html+skybridge"
 WIDGETS_DIR = Path(__file__).resolve().parent.parent / "widgets"
 
 # Map widget name -> resource URI used in tool meta

@@ -1192,6 +1192,8 @@ def register(mcp: FastMCP) -> None:
         ),
         meta={
             "ui": {"resourceUri": "ui://mimic-iv-demo/patient-summary.html"},
+            "ui/resourceUri": "ui://mimic-iv-demo/patient-summary.html",
+            "openai/outputTemplate": "ui://mimic-iv-demo/patient-summary.html",
         },
     )
     def summarize_patient(
@@ -1290,6 +1292,8 @@ def register(mcp: FastMCP) -> None:
         ),
         meta={
             "ui": {"resourceUri": "ui://mimic-iv-demo/health-readout.html"},
+            "ui/resourceUri": "ui://mimic-iv-demo/health-readout.html",
+            "openai/outputTemplate": "ui://mimic-iv-demo/health-readout.html",
         },
     )
     def get_health_readout(subject_id: int) -> CallToolResult:
