@@ -38,8 +38,8 @@ window.addEventListener("openai:set_globals",function(e){
 },{passive:true});
 
 window.addEventListener("message",function(e){
-  if(e.source!==window.parent)return;
   var m=e.data;
+
   if(!m||m.jsonrpc!=="2.0")return;
   var params=m.params||{};
   var sc=params.structuredContent||params.result&&params.result.structuredContent;
