@@ -115,5 +115,7 @@ def register(mcp: FastMCP) -> None:
             _meta={
                 "openai/outputTemplate": "ui://mimic-iv-demo/patients.html",
                 "openai/widgetAccessible": True,
+                "patients": rows,
+                "count": count,
             },
         )
