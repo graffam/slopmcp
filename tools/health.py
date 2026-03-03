@@ -1278,6 +1278,7 @@ def register(mcp: FastMCP) -> None:
             _meta={
                 "openai/outputTemplate": "ui://mimic-iv-demo/patient-summary.html",
                 "openai/widgetAccessible": True,
+                **structured,
             },
         )
 
@@ -1349,5 +1350,12 @@ def register(mcp: FastMCP) -> None:
             _meta={
                 "openai/outputTemplate": "ui://mimic-iv-demo/health-readout.html",
                 "openai/widgetAccessible": True,
+                "subject_id": subject_id,
+                "patient": patient,
+                "readout": readout,
+                "summary_text": summary,
+                "summary_markdown": summary_markdown,
+                "latest_labs": latest_labs,
+                "latest_vitals": latest_vitals,
             },
         )

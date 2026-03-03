@@ -99,6 +99,9 @@ def register(mcp: FastMCP) -> None:
             _meta={
                 "openai/outputTemplate": "ui://mimic-iv-demo/admissions.html",
                 "openai/widgetAccessible": True,
+                "admissions": rows,
+                "subject_id": subject_id,
+                "count": len(rows),
             },
         )
 
@@ -176,6 +179,9 @@ def register(mcp: FastMCP) -> None:
             _meta={
                 "openai/outputTemplate": "ui://mimic-iv-demo/diagnoses.html",
                 "openai/widgetAccessible": True,
+                "diagnoses": rows,
+                "hadm_id": hadm_id,
+                "count": len(rows),
             },
         )
 
@@ -260,5 +266,8 @@ def register(mcp: FastMCP) -> None:
             _meta={
                 "openai/outputTemplate": "ui://mimic-iv-demo/prescriptions.html",
                 "openai/widgetAccessible": True,
+                "prescriptions": rows,
+                "hadm_id": hadm_id,
+                "count": len(rows),
             },
         )

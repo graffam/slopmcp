@@ -73,6 +73,9 @@ def register(mcp: FastMCP) -> None:
                 _meta={
                     "openai/outputTemplate": "ui://mimic-iv-demo/vitals.html",
                     "openai/widgetAccessible": True,
+                    "vitals": [],
+                    "stays": [],
+                    "subject_id": subject_id,
                 },
             )
 
@@ -170,6 +173,12 @@ def register(mcp: FastMCP) -> None:
             _meta={
                 "openai/outputTemplate": "ui://mimic-iv-demo/vitals.html",
                 "openai/widgetAccessible": True,
+                "vitals": rows,
+                "stays": stays,
+                "subject_id": subject_id,
+                "vital_groups": {
+                    name: ids for name, ids in VITAL_ITEMIDS.items()
+                },
             },
         )
 
@@ -240,5 +249,8 @@ def register(mcp: FastMCP) -> None:
             _meta={
                 "openai/outputTemplate": "ui://mimic-iv-demo/icu-stays.html",
                 "openai/widgetAccessible": True,
+                "stays": rows,
+                "subject_id": subject_id,
+                "count": len(rows),
             },
         )
