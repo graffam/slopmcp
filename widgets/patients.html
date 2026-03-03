@@ -26,10 +26,16 @@ h2{font-size:16px;font-weight:600;margin-bottom:4px;color:#f0f6fc}
 <body>
 <h2>Patient Search Results</h2>
 <p class="subtitle" id="count"></p>
+<p class="subtitle" id="debug" style="font-family:monospace">debug: boot</p>
 <div id="loading">Waiting for results...</div>
 <div class="grid" id="grid"></div>
 <script>
 function unwrap(o){if(!o)return null;return o.structuredContent||o}
+function dbg(msg){
+  var el=document.getElementById("debug");
+  if(!el)return;
+  el.textContent="debug: "+msg;
+}
 function extractData(payload){
   if(!payload)return null;
   if(typeof payload==="string"){
@@ -47,11 +53,20 @@ function extractData(payload){
 }
 function maybeRender(payload){
   var data=extractData(payload);
-  if(!data)return false;
+  if(!data){
+    return false;
+  }
+  dbg("render keys="+Object.keys(data).join(","));
   render(data);
   return true;
 }
 function hydrateFromHost(){
+  dbg("hydrating openai="+!!window.openai);
+  if(window.openai){
+    try{
+      dbg("openai keys="+Object.keys(window.openai).join(","));
+    }catch(_){}
+  }
   if(maybeRender(window.openai&&window.openai.toolOutput))return;
   if(maybeRender(window.openai&&window.openai.toolResponseMetadata))return;
   if(maybeRender(window.openai&&window.openai.globals&&window.openai.globals.toolOutput))return;
@@ -61,22 +76,26 @@ function hydrateFromHost(){
     if(maybeRender(window.openai&&window.openai.toolOutput))return clearInterval(timer);
     if(maybeRender(window.openai&&window.openai.toolResponseMetadata))return clearInterval(timer);
     if(maybeRender(window.openai&&window.openai.globals&&window.openai.globals.toolOutput))return clearInterval(timer);
-    if(attempts>=80)clearInterval(timer);
+    if(attempts===20)dbg("polling openai="+!!window.openai);
+    if(attempts>=80){dbg("no tool data after 8s");clearInterval(timer);}
   },100);
 }
 
 hydrateFromHost();
 
 window.addEventListener("openai:set_globals",function(e){
+  dbg("event openai:set_globals");
   maybeRender(e&&e.detail);
 },{passive:true});
 
 window.addEventListener("openai:setGlobals",function(e){
+  dbg("event openai:setGlobals");
   maybeRender(e&&e.detail);
 },{passive:true});
 
 window.addEventListener("message",function(e){
   var m=e.data;
+  dbg("message event");
   if(!m)return;
   if(m.jsonrpc&&m.jsonrpc!=="2.0")return;
   maybeRender(m);
