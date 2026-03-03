@@ -64,7 +64,7 @@ window.addEventListener("message",function(e){
   if(e.source!==window.parent)return;
   var m=e.data;
   if(!m||m.jsonrpc!=="2.0")return;
-  if(m.method==="ui/notifications/tool-result"){
+  if(m.method==="ui/notifications/tool_result"){
     var sc=m.params&&m.params.structuredContent;
     if(sc)render(sc);
   }
