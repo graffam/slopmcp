@@ -1274,6 +1274,10 @@ def register(mcp: FastMCP) -> None:
         return CallToolResult(
             content=[TextContent(type="text", text=summary_markdown)],
             structuredContent=structured,
+            _meta={
+                "openai/outputTemplate": "ui://mimic-iv-demo/patient-summary.html",
+                "openai/widgetAccessible": True,
+            },
         )
 
     @mcp.tool(
@@ -1339,5 +1343,9 @@ def register(mcp: FastMCP) -> None:
                 "summary_markdown": summary_markdown,
                 "latest_labs": latest_labs,
                 "latest_vitals": latest_vitals,
+            },
+            _meta={
+                "openai/outputTemplate": "ui://mimic-iv-demo/health-readout.html",
+                "openai/widgetAccessible": True,
             },
         )

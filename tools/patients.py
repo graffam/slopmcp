@@ -111,4 +111,8 @@ def register(mcp: FastMCP) -> None:
                 )
             ],
             structuredContent={"patients": rows, "count": count},
+            _meta={
+                "openai/outputTemplate": "ui://mimic-iv-demo/patients.html",
+                "openai/widgetAccessible": True,
+            },
         )

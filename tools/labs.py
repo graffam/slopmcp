@@ -138,6 +138,10 @@ def register(mcp: FastMCP) -> None:
                 "categories": categories,
                 "subject_id": subject_id,
             },
+            _meta={
+                "openai/outputTemplate": "ui://mimic-iv-demo/lab-results.html",
+                "openai/widgetAccessible": True,
+            },
         )
 
     @mcp.tool(
@@ -241,5 +245,9 @@ def register(mcp: FastMCP) -> None:
                 "trend": rows,
                 "test_name": test_name,
                 "subject_id": subject_id,
+            },
+            _meta={
+                "openai/outputTemplate": "ui://mimic-iv-demo/lab-trend.html",
+                "openai/widgetAccessible": True,
             },
         )

@@ -69,6 +69,10 @@ def register(mcp: FastMCP) -> None:
                     )
                 ],
                 structuredContent={"vitals": [], "stays": [], "subject_id": subject_id},
+                _meta={
+                    "openai/outputTemplate": "ui://mimic-iv-demo/vitals.html",
+                    "openai/widgetAccessible": True,
+                },
             )
 
         # Build conditions
@@ -162,6 +166,10 @@ def register(mcp: FastMCP) -> None:
                     name: ids for name, ids in VITAL_ITEMIDS.items()
                 },
             },
+            _meta={
+                "openai/outputTemplate": "ui://mimic-iv-demo/vitals.html",
+                "openai/widgetAccessible": True,
+            },
         )
 
     @mcp.tool(
@@ -226,5 +234,9 @@ def register(mcp: FastMCP) -> None:
                 "stays": rows,
                 "subject_id": subject_id,
                 "count": len(rows),
+            },
+            _meta={
+                "openai/outputTemplate": "ui://mimic-iv-demo/icu-stays.html",
+                "openai/widgetAccessible": True,
             },
         )
