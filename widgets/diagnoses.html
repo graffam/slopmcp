@@ -26,22 +26,53 @@ h2{font-size:16px;font-weight:600;margin-bottom:4px;color:#f0f6fc}
 <div class="dx-list" id="list"></div>
 <script>
 function unwrap(o){if(!o)return null;return o.structuredContent||o}
+function extractData(payload){
+  if(!payload)return null;
+  if(typeof payload==="string"){
+    try{return extractData(JSON.parse(payload));}catch(_){return null;}
+  }
+  if(typeof payload!=="object")return null;
+  if(payload.structuredContent)return payload.structuredContent;
+  if(payload.toolOutput)return extractData(payload.toolOutput);
+  if(payload.result)return extractData(payload.result);
+  if(payload.params)return extractData(payload.params);
+  if(payload.globals&&payload.globals.toolOutput)return extractData(payload.globals.toolOutput);
+  if(payload.jsonrpc||payload.method)return null;
+  return payload;
+}
+function maybeRender(payload){
+  var data=extractData(payload);
+  if(!data)return false;
+  render(data);
+  return true;
+}
+function hydrateFromHost(){
+  if(maybeRender(window.openai&&window.openai.toolOutput))return;
+  if(maybeRender(window.openai&&window.openai.globals&&window.openai.globals.toolOutput))return;
+  var attempts=0;
+  var timer=setInterval(function(){
+    attempts+=1;
+    if(maybeRender(window.openai&&window.openai.toolOutput))return clearInterval(timer);
+    if(maybeRender(window.openai&&window.openai.globals&&window.openai.globals.toolOutput))return clearInterval(timer);
+    if(attempts>=80)clearInterval(timer);
+  },100);
+}
 
-var _init=unwrap(window.openai&&window.openai.toolOutput);
-if(_init)render(_init);
+hydrateFromHost();
 
 window.addEventListener("openai:set_globals",function(e){
-  var o=unwrap(e.detail&&e.detail.globals&&e.detail.globals.toolOutput);
-  if(o)render(o);
+  maybeRender(e&&e.detail);
+},{passive:true});
+
+window.addEventListener("openai:setGlobals",function(e){
+  maybeRender(e&&e.detail);
 },{passive:true});
 
 window.addEventListener("message",function(e){
   var m=e.data;
-
-  if(!m||m.jsonrpc!=="2.0")return;
-  var params=m.params||{};
-  var sc=params.structuredContent||params.result&&params.result.structuredContent;
-  if(sc)render(sc);
+  if(!m)return;
+  if(m.jsonrpc&&m.jsonrpc!=="2.0")return;
+  maybeRender(m);
 },{passive:true});
 
 function render(data){
