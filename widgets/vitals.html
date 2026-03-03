@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d1117;color:#e6edf3;padding:16px;line-height:1.5}
+h2{font-size:16px;font-weight:600;margin-bottom:4px;color:#f0f6fc}
+.subtitle{font-size:13px;color:#8b949e;margin-bottom:16px}
+.section{margin-bottom:20px}
+.section h3{font-size:13px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.vital-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:16px}
+.vital-card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px;text-align:center}
+.vital-card:hover{border-color:#58a6ff}
+.vital-name{font-size:11px;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px}
+.vital-value{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:#e6edf3}
+.vital-unit{font-size:11px;color:#8b949e;margin-left:2px;font-weight:400}
+.vital-time{font-size:10px;color:#484f58;margin-top:6px}
+.stays-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.stay-chip{font-size:12px;padding:4px 12px;border-radius:8px;background:#161b22;border:1px solid #30363d;color:#79c0ff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;background:#161b22;color:#8b949e;font-weight:500;border-bottom:1px solid #30363d;position:sticky;top:0}
+td{padding:7px 10px;border-bottom:1px solid #21262d;font-variant-numeric:tabular-nums}
+tr:hover td{background:#161b22}
+.time-cell{color:#8b949e;font-size:12px}
+#loading{text-align:center;padding:40px;color:#8b949e}
+</style>
+</head>
+<body>
+<h2>ICU Vital Signs</h2>
+<p class="subtitle" id="summary"></p>
+<div id="loading">Waiting for results...</div>
+<div id="content" style="display:none">
+  <div class="section">
+    <h3>ICU Stays</h3>
+    <div class="stays-row" id="stays"></div>
+  </div>
+  <div class="section" id="latest-section">
+    <h3>Latest Readings</h3>
+    <div class="vital-grid" id="latest"></div>
+  </div>
+  <div class="section">
+    <h3>Measurements</h3>
+    <div style="max-height:400px;overflow-y:auto">
+    <table><thead><tr>
+      <th>Time</th><th>Stay</th><th>Vital</th><th>Value</th><th>Unit</th>
+    </tr></thead><tbody id="tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+<script>
+window.addEventListener("message",function(e){
+  if(e.source!==window.parent)return;
+  var m=e.data;
+  if(!m||m.jsonrpc!=="2.0"||m.method!=="ui/notifications/tool-result")return;
+  var sc=m.params?.structuredContent;
+  if(!sc)return;
+  render(sc);
+},{passive:true});
+
+function render(data){
+  var vitals=data.vitals||[];
+  var stays=data.stays||[];
+  document.getElementById("loading").style.display="none";
+  document.getElementById("content").style.display="";
+  document.getElementById("summary").textContent=vitals.length+" measurement(s) across "+stays.length+" ICU stay(s)";
+
+  var staysDiv=document.getElementById("stays");
+  staysDiv.innerHTML="";
+  stays.forEach(function(s){
+    var chip=document.createElement("span");
+    chip.className="stay-chip";
+    chip.textContent="Stay "+s.stay_id+" \u00B7 "+(s.first_careunit||"ICU");
+    staysDiv.appendChild(chip);
+  });
+
+  // Compute latest per vital type
+  var latestMap={};
+  vitals.forEach(function(v){
+    var name=v.vital_name;
+    if(!latestMap[name]||v.charttime>latestMap[name].charttime){
+      latestMap[name]=v;
+    }
+  });
+  var latestDiv=document.getElementById("latest");
+  latestDiv.innerHTML="";
+  Object.keys(latestMap).forEach(function(name){
+    var v=latestMap[name];
+    var card=document.createElement("div");
+    card.className="vital-card";
+    card.innerHTML=
+      '<div class="vital-name">'+name+'</div>'+
+      '<div class="vital-value">'+fmtVal(v.value)+'<span class="vital-unit">'+nvl(v.unit)+'</span></div>'+
+      '<div class="vital-time">'+nvl(v.charttime)+'</div>';
+    latestDiv.appendChild(card);
+  });
+
+  // Table - most recent first
+  var sorted=vitals.slice().sort(function(a,b){return(b.charttime||"").localeCompare(a.charttime||"")});
+  var tbody=document.getElementById("tbody");
+  tbody.innerHTML="";
+  sorted.slice(0,80).forEach(function(v){
+    var tr=document.createElement("tr");
+    tr.innerHTML=
+      '<td class="time-cell">'+nvl(v.charttime)+'</td>'+
+      '<td>'+nvl(v.stay_id)+'</td>'+
+      '<td>'+nvl(v.vital_name)+'</td>'+
+      '<td>'+fmtVal(v.value)+'</td>'+
+      '<td>'+nvl(v.unit)+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+function nvl(v){return v==null?"—":String(v)}
+function fmtVal(v){return v==null?"—":Number(v).toFixed(1)}
+</script>
+</body>
+</html>

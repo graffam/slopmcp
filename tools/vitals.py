@@ -33,6 +33,7 @@ def register(mcp: FastMCP) -> None:
         meta={
             "openai/toolInvocation/invoking": "Loading vital signs...",
             "openai/toolInvocation/invoked": "Vital signs ready (v4)",
+            "ui": {"resourceUri": "ui://mimic-iv-demo/vitals.html"},
         },
     )
     def get_vitals(
@@ -171,6 +172,7 @@ def register(mcp: FastMCP) -> None:
         meta={
             "openai/toolInvocation/invoking": "Loading ICU stays...",
             "openai/toolInvocation/invoked": "ICU stays loaded",
+            "ui": {"resourceUri": "ui://mimic-iv-demo/icu-stays.html"},
         },
     )
     def list_icu_stays(subject_id: int) -> CallToolResult:

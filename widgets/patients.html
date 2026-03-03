@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d1117;color:#e6edf3;padding:16px;line-height:1.5}
+h2{font-size:16px;font-weight:600;margin-bottom:4px;color:#f0f6fc}
+.subtitle{font-size:13px;color:#8b949e;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:14px;transition:border-color .15s}
+.card:hover{border-color:#58a6ff}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.patient-id{font-size:15px;font-weight:600;color:#58a6ff}
+.gender-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+.gender-M{background:#1f3a5f;color:#58a6ff}
+.gender-F{background:#3b1f4a;color:#d2a8ff}
+.stat-row{display:flex;gap:16px;flex-wrap:wrap}
+.stat{font-size:12px;color:#8b949e}
+.stat strong{color:#e6edf3;font-variant-numeric:tabular-nums}
+.dod{color:#f85149;font-size:11px;margin-top:6px}
+#loading{text-align:center;padding:40px;color:#8b949e}
+</style>
+</head>
+<body>
+<h2>Patient Search Results</h2>
+<p class="subtitle" id="count"></p>
+<div id="loading">Waiting for results...</div>
+<div class="grid" id="grid"></div>
+<script>
+window.addEventListener("message",function(e){
+  if(e.source!==window.parent)return;
+  var m=e.data;
+  if(!m||m.jsonrpc!=="2.0")return;
+  if(m.method!=="ui/notifications/tool-result")return;
+  var sc=m.params?.structuredContent;
+  if(!sc)return;
+  render(sc);
+},{passive:true});
+
+function render(data){
+  var patients=data.patients||[];
+  var count=data.count||patients.length;
+  document.getElementById("loading").style.display="none";
+  document.getElementById("count").textContent="Found "+count+" patient(s)";
+  var grid=document.getElementById("grid");
+  grid.innerHTML="";
+  patients.forEach(function(p){
+    var card=document.createElement("div");
+    card.className="card";
+    var gender=p.gender||"?";
+    var dod=p.dod?'<div class="dod">Deceased: '+p.dod+'</div>':"";
+    card.innerHTML=
+      '<div class="card-header">'+
+        '<span class="patient-id">#'+p.subject_id+'</span>'+
+        '<span class="gender-badge gender-'+gender+'">'+gender+'</span>'+
+      '</div>'+
+      '<div class="stat-row">'+
+        '<span class="stat">Age: <strong>'+nvl(p.anchor_age)+'</strong></span>'+
+        '<span class="stat">Admissions: <strong>'+nvl(p.num_admissions)+'</strong></span>'+
+        '<span class="stat">Years: <strong>'+nvl(p.anchor_year_group)+'</strong></span>'+
+      '</div>'+dod;
+    grid.appendChild(card);
+  });
+}
+function nvl(v){return v==null?"—":v}
+</script>
+</body>
+</html>

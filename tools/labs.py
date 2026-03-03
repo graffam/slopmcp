@@ -20,6 +20,7 @@ def register(mcp: FastMCP) -> None:
         meta={
             "openai/toolInvocation/invoking": "Querying lab results...",
             "openai/toolInvocation/invoked": "Lab results ready (v4)",
+            "ui": {"resourceUri": "ui://mimic-iv-demo/lab-results.html"},
         },
     )
     def get_lab_results(
@@ -148,6 +149,7 @@ def register(mcp: FastMCP) -> None:
         meta={
             "openai/toolInvocation/invoking": "Loading lab trend...",
             "openai/toolInvocation/invoked": "Lab trend ready (v4)",
+            "ui": {"resourceUri": "ui://mimic-iv-demo/lab-trend.html"},
         },
     )
     def get_lab_trend(

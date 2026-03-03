@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d1117;color:#e6edf3;padding:16px;line-height:1.5}
+h2{font-size:16px;font-weight:600;margin-bottom:4px;color:#f0f6fc}
+.subtitle{font-size:13px;color:#8b949e;margin-bottom:16px}
+.dx-list{display:flex;flex-direction:column;gap:8px}
+.dx-item{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:12px}
+.dx-item:hover{border-color:#58a6ff}
+.dx-seq{min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#1f3a5f;color:#58a6ff;font-size:12px;font-weight:600;flex-shrink:0}
+.dx-body{flex:1}
+.dx-title{font-size:13px;color:#e6edf3;margin-bottom:4px}
+.dx-meta{display:flex;gap:12px;font-size:11px;color:#8b949e}
+.icd-badge{font-family:'SF Mono',SFMono-Regular,Consolas,monospace;background:#21262d;padding:1px 6px;border-radius:4px;font-size:11px}
+#loading{text-align:center;padding:40px;color:#8b949e}
+</style>
+</head>
+<body>
+<h2>Diagnoses</h2>
+<p class="subtitle" id="summary"></p>
+<div id="loading">Waiting for results...</div>
+<div class="dx-list" id="list"></div>
+<script>
+window.addEventListener("message",function(e){
+  if(e.source!==window.parent)return;
+  var m=e.data;
+  if(!m||m.jsonrpc!=="2.0"||m.method!=="ui/notifications/tool-result")return;
+  var sc=m.params?.structuredContent;
+  if(!sc)return;
+  render(sc);
+},{passive:true});
+
+function render(data){
+  var rows=data.diagnoses||[];
+  document.getElementById("loading").style.display="none";
+  document.getElementById("summary").textContent="Found "+data.count+" diagnosis code(s) for admission "+data.hadm_id;
+  var list=document.getElementById("list");
+  list.innerHTML="";
+  rows.forEach(function(d){
+    var item=document.createElement("div");
+    item.className="dx-item";
+    item.innerHTML=
+      '<div class="dx-seq">'+d.seq_num+'</div>'+
+      '<div class="dx-body">'+
+        '<div class="dx-title">'+esc(d.diagnosis_title||d.icd_code)+'</div>'+
+        '<div class="dx-meta">'+
+          '<span class="icd-badge">ICD-'+d.icd_version+': '+d.icd_code+'</span>'+
+        '</div>'+
+      '</div>';
+    list.appendChild(item);
+  });
+}
+function esc(s){if(!s)return"—";var d=document.createElement("span");d.textContent=s;return d.innerHTML}
+</script>
+</body>
+</html>

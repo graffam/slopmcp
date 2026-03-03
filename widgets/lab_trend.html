@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d1117;color:#e6edf3;padding:16px;line-height:1.5}
+h2{font-size:16px;font-weight:600;margin-bottom:4px;color:#f0f6fc}
+.subtitle{font-size:13px;color:#8b949e;margin-bottom:16px}
+.chart-container{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:16px}
+svg{width:100%;overflow:visible}
+.axis-label{fill:#8b949e;font-size:11px}
+.ref-band{fill:#238636;opacity:.12}
+.data-line{fill:none;stroke:#58a6ff;stroke-width:2}
+.data-dot{fill:#58a6ff}
+.flag-dot{fill:#f85149}
+.grid-line{stroke:#21262d;stroke-width:1}
+.tooltip-line{stroke:#30363d;stroke-width:1;stroke-dasharray:4}
+.stats{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;font-size:12px}
+.stat-label{color:#8b949e}
+.stat-value{color:#e6edf3;font-weight:600;font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;background:#161b22;color:#8b949e;font-weight:500;border-bottom:1px solid #30363d}
+td{padding:7px 10px;border-bottom:1px solid #21262d;font-variant-numeric:tabular-nums}
+tr:hover td{background:#161b22}
+.flag-abnormal{color:#f85149;font-weight:600}
+.time-cell{color:#8b949e;font-size:12px}
+#loading{text-align:center;padding:40px;color:#8b949e}
+</style>
+</head>
+<body>
+<h2 id="title">Lab Trend</h2>
+<p class="subtitle" id="summary"></p>
+<div id="loading">Waiting for results...</div>
+<div class="chart-container" id="chart-wrap" style="display:none">
+  <svg id="svg" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet"></svg>
+  <div class="stats" id="stats"></div>
+</div>
+<div style="max-height:300px;overflow-y:auto;display:none" id="table-wrap">
+  <table><thead><tr>
+    <th>Time</th><th>Value</th><th>Unit</th><th>Ref Range</th><th>Flag</th>
+  </tr></thead><tbody id="tbody"></tbody></table>
+</div>
+<script>
+window.addEventListener("message",function(e){
+  if(e.source!==window.parent)return;
+  var m=e.data;
+  if(!m||m.jsonrpc!=="2.0"||m.method!=="ui/notifications/tool-result")return;
+  var sc=m.params?.structuredContent;
+  if(!sc)return;
+  render(sc);
+},{passive:true});
+
+function render(data){
+  var points=data.trend||[];
+  var testName=data.test_name||"Lab Test";
+  document.getElementById("loading").style.display="none";
+  document.getElementById("title").textContent="Lab Trend: "+testName;
+  document.getElementById("summary").textContent=points.length+" measurement(s) for patient "+data.subject_id;
+  if(!points.length)return;
+
+  document.getElementById("chart-wrap").style.display="";
+  document.getElementById("table-wrap").style.display="";
+
+  var W=600,H=260,PAD_L=50,PAD_R=20,PAD_T=20,PAD_B=40;
+  var cW=W-PAD_L-PAD_R,cH=H-PAD_T-PAD_B;
+
+  var vals=points.map(function(p){return p.valuenum});
+  var minVal=Math.min.apply(null,vals);
+  var maxVal=Math.max.apply(null,vals);
+  var valRange=maxVal-minVal||1;
+  minVal-=valRange*.08;maxVal+=valRange*.08;
+  valRange=maxVal-minVal;
+
+  var times=points.map(function(p){return new Date(p.charttime).getTime()});
+  var minT=Math.min.apply(null,times);
+  var maxT=Math.max.apply(null,times);
+  var tRange=maxT-minT||1;
+
+  function xScale(t){return PAD_L+((t-minT)/tRange)*cW}
+  function yScale(v){return PAD_T+cH-((v-minVal)/valRange)*cH}
+
+  var svg=document.getElementById("svg");
+  svg.setAttribute("viewBox","0 0 "+W+" "+H);
+  var parts=[];
+
+  // Grid lines
+  for(var i=0;i<=4;i++){
+    var gv=minVal+(valRange/4)*i;
+    var gy=yScale(gv);
+    parts.push('<line x1="'+PAD_L+'" y1="'+gy+'" x2="'+(W-PAD_R)+'" y2="'+gy+'" class="grid-line"/>');
+    parts.push('<text x="'+(PAD_L-6)+'" y="'+(gy+4)+'" text-anchor="end" class="axis-label">'+gv.toFixed(1)+'</text>');
+  }
+
+  // Reference range band
+  var refLow=null,refHigh=null;
+  for(var j=0;j<points.length;j++){
+    if(points[j].ref_range_lower!=null&&points[j].ref_range_upper!=null){
+      refLow=points[j].ref_range_lower;
+      refHigh=points[j].ref_range_upper;
+      break;
+    }
+  }
+  if(refLow!=null&&refHigh!=null){
+    var bandY1=yScale(Math.min(refHigh,maxVal));
+    var bandY2=yScale(Math.max(refLow,minVal));
+    parts.push('<rect x="'+PAD_L+'" y="'+bandY1+'" width="'+cW+'" height="'+(bandY2-bandY1)+'" class="ref-band"/>');
+  }
+
+  // Data line
+  var lineD=points.map(function(p,idx){
+    var t=new Date(p.charttime).getTime();
+    var x=xScale(t),y=yScale(p.valuenum);
+    return(idx===0?"M":"L")+x+" "+y;
+  }).join(" ");
+  parts.push('<path d="'+lineD+'" class="data-line"/>');
+
+  // Dots
+  points.forEach(function(p){
+    var t=new Date(p.charttime).getTime();
+    var x=xScale(t),y=yScale(p.valuenum);
+    var cls=p.flag&&p.flag.toLowerCase()!=="normal"?"flag-dot":"data-dot";
+    parts.push('<circle cx="'+x+'" cy="'+y+'" r="3.5" class="'+cls+'"/>');
+  });
+
+  svg.innerHTML=parts.join("");
+
+  // Stats
+  var latest=vals[vals.length-1];
+  var mean=vals.reduce(function(a,b){return a+b},0)/vals.length;
+  var statsDiv=document.getElementById("stats");
+  statsDiv.innerHTML=
+    '<span><span class="stat-label">Latest: </span><span class="stat-value">'+latest.toFixed(1)+'</span></span>'+
+    '<span><span class="stat-label">Mean: </span><span class="stat-value">'+mean.toFixed(1)+'</span></span>'+
+    '<span><span class="stat-label">Min: </span><span class="stat-value">'+Math.min.apply(null,vals).toFixed(1)+'</span></span>'+
+    '<span><span class="stat-label">Max: </span><span class="stat-value">'+Math.max.apply(null,vals).toFixed(1)+'</span></span>'+
+    (refLow!=null?'<span><span class="stat-label">Ref: </span><span class="stat-value">'+refLow+' – '+refHigh+'</span></span>':"");
+
+  // Table
+  var tbody=document.getElementById("tbody");
+  tbody.innerHTML="";
+  var recent=points.slice().reverse().slice(0,30);
+  recent.forEach(function(p){
+    var tr=document.createElement("tr");
+    var flag=p.flag||"normal";
+    var flagCls=flag.toLowerCase()==="normal"?"":"flag-abnormal";
+    var ref=(p.ref_range_lower!=null&&p.ref_range_upper!=null)?p.ref_range_lower+" – "+p.ref_range_upper:"—";
+    tr.innerHTML=
+      '<td class="time-cell">'+p.charttime+'</td>'+
+      '<td>'+p.valuenum.toFixed(1)+'</td>'+
+      '<td>'+(p.valueuom||"")+'</td>'+
+      '<td>'+ref+'</td>'+
+      '<td class="'+flagCls+'">'+flag+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+</script>
+</body>
+</html>

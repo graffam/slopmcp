@@ -9,7 +9,7 @@ from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Mount
 
-from tools import patients, labs, admissions, vitals, health
+from tools import patients, labs, admissions, vitals, health, ui
 
 # ---------------------------------------------------------------------------
 # Server
@@ -86,6 +86,7 @@ labs.register(mcp)
 admissions.register(mcp)
 vitals.register(mcp)
 health.register(mcp)
+ui.register(mcp)
 
 # ---------------------------------------------------------------------------
 # ASGI app with CORS + Streamable HTTP transport

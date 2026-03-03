@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d1117;color:#e6edf3;padding:16px;line-height:1.5}
+h2{font-size:16px;font-weight:600;margin-bottom:4px;color:#f0f6fc}
+.subtitle{font-size:13px;color:#8b949e;margin-bottom:16px}
+.stays{display:flex;flex-direction:column;gap:10px}
+.stay{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:14px;display:grid;grid-template-columns:auto 1fr;gap:4px 16px}
+.stay:hover{border-color:#58a6ff}
+.stay-id{grid-column:1/-1;font-size:14px;font-weight:600;color:#58a6ff;margin-bottom:4px}
+.label{font-size:12px;color:#8b949e}
+.value{font-size:12px;color:#e6edf3;font-variant-numeric:tabular-nums}
+.los-bar{grid-column:1/-1;margin-top:6px;height:6px;border-radius:3px;background:#21262d;overflow:hidden}
+.los-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#238636,#58a6ff)}
+#loading{text-align:center;padding:40px;color:#8b949e}
+</style>
+</head>
+<body>
+<h2>ICU Stays</h2>
+<p class="subtitle" id="summary"></p>
+<div id="loading">Waiting for results...</div>
+<div class="stays" id="stays"></div>
+<script>
+window.addEventListener("message",function(e){
+  if(e.source!==window.parent)return;
+  var m=e.data;
+  if(!m||m.jsonrpc!=="2.0"||m.method!=="ui/notifications/tool-result")return;
+  var sc=m.params?.structuredContent;
+  if(!sc)return;
+  render(sc);
+},{passive:true});
+
+function render(data){
+  var rows=data.stays||[];
+  document.getElementById("loading").style.display="none";
+  document.getElementById("summary").textContent="Found "+data.count+" ICU stay(s) for patient "+data.subject_id;
+  var maxLos=Math.max.apply(null,rows.map(function(r){return r.los||0}).concat([1]));
+  var container=document.getElementById("stays");
+  container.innerHTML="";
+  rows.forEach(function(s){
+    var div=document.createElement("div");
+    div.className="stay";
+    var pct=Math.min(100,((s.los||0)/maxLos)*100);
+    div.innerHTML=
+      '<div class="stay-id">Stay '+s.stay_id+' &middot; HADM '+nvl(s.hadm_id)+'</div>'+
+      '<span class="label">In</span><span class="value">'+nvl(s.intime)+'</span>'+
+      '<span class="label">Out</span><span class="value">'+nvl(s.outtime)+'</span>'+
+      '<span class="label">Care Unit</span><span class="value">'+nvl(s.first_careunit||s.last_careunit)+'</span>'+
+      '<span class="label">LOS</span><span class="value">'+fmtLos(s.los)+' days</span>'+
+      '<div class="los-bar"><div class="los-fill" style="width:'+pct+'%"></div></div>';
+    container.appendChild(div);
+  });
+}
+function nvl(v){return v==null?"—":String(v)}
+function fmtLos(v){return v==null?"—":Number(v).toFixed(1)}
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d1117;color:#e6edf3;padding:16px;line-height:1.5}
+h2{font-size:16px;font-weight:600;margin-bottom:4px;color:#f0f6fc}
+.subtitle{font-size:13px;color:#8b949e;margin-bottom:12px}
+.section{margin-bottom:20px}
+.section h3{font-size:13px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;background:#161b22;color:#8b949e;font-weight:500;border-bottom:1px solid #30363d;position:sticky;top:0}
+td{padding:7px 10px;border-bottom:1px solid #21262d;font-variant-numeric:tabular-nums}
+tr:hover td{background:#161b22}
+.flag-abnormal{color:#f85149;font-weight:600}
+.flag-normal{color:#8b949e}
+.value-cell{font-family:'SF Mono',SFMono-Regular,Consolas,monospace;font-size:12px}
+.cat-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.cat-pill{font-size:11px;padding:3px 10px;border-radius:10px;background:#161b22;border:1px solid #30363d;color:#e6edf3;cursor:pointer;transition:all .15s}
+.cat-pill:hover,.cat-pill.active{border-color:#58a6ff;color:#58a6ff}
+.cat-count{color:#8b949e;margin-left:4px}
+#loading{text-align:center;padding:40px;color:#8b949e}
+.time-cell{color:#8b949e;font-size:12px}
+</style>
+</head>
+<body>
+<h2>Lab Results</h2>
+<p class="subtitle" id="summary"></p>
+<div id="loading">Waiting for results...</div>
+<div class="section" id="cats-section" style="display:none">
+  <h3>Categories</h3>
+  <div class="cat-pills" id="cats"></div>
+</div>
+<div class="section" id="results-section" style="display:none">
+  <h3>Results</h3>
+  <div style="max-height:500px;overflow-y:auto">
+    <table><thead><tr>
+      <th>Time</th><th>Test</th><th>Category</th><th>Value</th><th>Flag</th>
+    </tr></thead><tbody id="tbody"></tbody></table>
+  </div>
+</div>
+<script>
+var allRows=[];
+window.addEventListener("message",function(e){
+  if(e.source!==window.parent)return;
+  var m=e.data;
+  if(!m||m.jsonrpc!=="2.0"||m.method!=="ui/notifications/tool-result")return;
+  var sc=m.params?.structuredContent;
+  if(!sc)return;
+  render(sc);
+},{passive:true});
+
+function render(data){
+  allRows=data.labs||[];
+  var cats=data.categories||[];
+  document.getElementById("loading").style.display="none";
+  document.getElementById("summary").textContent="Found "+data.count+" lab result(s) for patient "+data.subject_id;
+  if(cats.length){
+    document.getElementById("cats-section").style.display="";
+    var cDiv=document.getElementById("cats");
+    cDiv.innerHTML="";
+    cats.forEach(function(c){
+      var pill=document.createElement("span");
+      pill.className="cat-pill";
+      pill.innerHTML=c.category+'<span class="cat-count">'+c.count+'</span>';
+      cDiv.appendChild(pill);
+    });
+  }
+  document.getElementById("results-section").style.display="";
+  renderTable(allRows);
+}
+
+function renderTable(rows){
+  var tbody=document.getElementById("tbody");
+  tbody.innerHTML="";
+  rows.slice(0,100).forEach(function(r){
+    var tr=document.createElement("tr");
+    var flag=r.flag||"normal";
+    var flagClass=flag.toLowerCase()==="normal"?"flag-normal":"flag-abnormal";
+    var val=r.valuenum!=null?r.valuenum:r.value;
+    var unit=r.unit||"";
+    tr.innerHTML=
+      '<td class="time-cell">'+nvl(r.charttime)+'</td>'+
+      '<td>'+nvl(r.test_name)+'</td>'+
+      '<td>'+nvl(r.category)+'</td>'+
+      '<td class="value-cell">'+nvl(val)+" "+unit+'</td>'+
+      '<td class="'+flagClass+'">'+flag+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+function nvl(v){return v==null?"—":String(v)}
+</script>
+</body>
+</html>

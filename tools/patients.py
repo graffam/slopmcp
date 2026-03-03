@@ -19,6 +19,7 @@ def register(mcp: FastMCP) -> None:
         meta={
             "openai/toolInvocation/invoking": "Searching patients...",
             "openai/toolInvocation/invoked": "Patient search complete (v4)",
+            "ui": {"resourceUri": "ui://mimic-iv-demo/patients.html"},
         },
     )
     def search_patients(

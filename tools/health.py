@@ -1190,6 +1190,9 @@ def register(mcp: FastMCP) -> None:
             idempotentHint=True,
             openWorldHint=False,
         ),
+        meta={
+            "ui": {"resourceUri": "ui://mimic-iv-demo/patient-summary.html"},
+        },
     )
     def summarize_patient(
         subject_id: int,
@@ -1285,6 +1288,9 @@ def register(mcp: FastMCP) -> None:
             idempotentHint=True,
             openWorldHint=False,
         ),
+        meta={
+            "ui": {"resourceUri": "ui://mimic-iv-demo/health-readout.html"},
+        },
     )
     def get_health_readout(subject_id: int) -> CallToolResult:
         patient = _query_patient(subject_id)

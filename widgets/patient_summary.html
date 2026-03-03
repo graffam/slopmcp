@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d1117;color:#e6edf3;padding:16px;line-height:1.5}
+h2{font-size:16px;font-weight:600;margin-bottom:4px;color:#f0f6fc}
+.subtitle{font-size:13px;color:#8b949e;margin-bottom:16px}
+
+/* Demographics banner */
+.banner{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px;display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.avatar{width:48px;height:48px;border-radius:50%;background:#1f3a5f;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#58a6ff;flex-shrink:0}
+.demo-stats{display:flex;gap:20px;flex-wrap:wrap;font-size:13px}
+.demo-stat .label{color:#8b949e;font-size:11px;display:block}
+.demo-stat .val{color:#e6edf3;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* Overall score */
+.score-strip{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.ring-container{position:relative;width:48px;height:48px;flex-shrink:0}
+.ring-container svg{width:48px;height:48px;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:#21262d;stroke-width:5}
+.ring-fg{fill:none;stroke-width:5;stroke-linecap:round}
+.ring-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;font-weight:700}
+.score-text{font-size:14px;font-weight:600}
+.score-concerns{font-size:12px;color:#8b949e;margin-top:2px}
+
+.status-good{color:#3fb950}
+.status-needs-attention{color:#d29922}
+.status-high-risk{color:#f85149}
+.status-unknown{color:#8b949e}
+
+/* Sections */
+.section{margin-bottom:16px}
+.section h3{font-size:13px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #21262d}
+
+/* Score cards row */
+.score-cards{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px}
+.sc{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:10px;min-width:120px;flex-shrink:0;text-align:center}
+.sc:hover{border-color:#58a6ff}
+.sc-title{font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.sc-value{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.sc-score{font-size:10px;margin-top:2px}
+
+/* Admission card */
+.adm-card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px;margin-bottom:12px}
+.adm-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:12px}
+.adm-label{color:#8b949e}.adm-value{color:#e6edf3}
+
+/* Lists */
+.dx-list{list-style:none;font-size:13px}
+.dx-list li{padding:4px 0;border-bottom:1px solid #21262d;display:flex;gap:8px}
+.dx-list li:last-child{border-bottom:none}
+.dx-seq{color:#58a6ff;font-weight:600;min-width:20px}
+.dx-code{font-family:monospace;font-size:11px;color:#8b949e}
+
+.med-list{list-style:none;font-size:13px}
+.med-list li{padding:5px 0;border-bottom:1px solid #21262d}
+.med-list li:last-child{border-bottom:none}
+.med-name{font-weight:600;color:#e6edf3}
+.med-detail{font-size:11px;color:#8b949e;margin-top:2px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:6px 8px;background:#0d1117;color:#8b949e;font-weight:500;border-bottom:1px solid #30363d}
+td{padding:5px 8px;border-bottom:1px solid #21262d;font-variant-numeric:tabular-nums}
+tr:hover td{background:#161b22}
+.flag-abnormal{color:#f85149;font-weight:600}
+.time-cell{color:#8b949e;font-size:11px}
+
+#loading{text-align:center;padding:40px;color:#8b949e}
+</style>
+</head>
+<body>
+<h2 id="title">Patient Summary</h2>
+<p class="subtitle" id="summary-text"></p>
+<div id="loading">Waiting for results...</div>
+<div id="content" style="display:none">
+  <div class="banner" id="banner"></div>
+  <div class="score-strip" id="score-strip"></div>
+  <div class="score-cards" id="score-cards"></div>
+  <div class="section" id="adm-section" style="display:none">
+    <h3>Focused Admission</h3>
+    <div id="adm-card"></div>
+  </div>
+  <div class="section" id="dx-section" style="display:none">
+    <h3>Diagnoses</h3>
+    <ul class="dx-list" id="dx-list"></ul>
+  </div>
+  <div class="section" id="chronic-section" style="display:none">
+    <h3>Chronic Conditions</h3>
+    <ul class="dx-list" id="chronic-list"></ul>
+  </div>
+  <div class="section" id="med-section" style="display:none">
+    <h3>Medications</h3>
+    <ul class="med-list" id="med-list"></ul>
+  </div>
+  <div class="section" id="labs-section" style="display:none">
+    <h3>Key Labs</h3>
+    <table><thead><tr><th>Metric</th><th>Value</th><th>Flag</th><th>Time</th></tr></thead>
+    <tbody id="labs-tbody"></tbody></table>
+  </div>
+  <div class="section" id="vitals-section" style="display:none">
+    <h3>Key Vitals</h3>
+    <table><thead><tr><th>Metric</th><th>Value</th><th>Time</th></tr></thead>
+    <tbody id="vitals-tbody"></tbody></table>
+  </div>
+</div>
+<script>
+window.addEventListener("message",function(e){
+  if(e.source!==window.parent)return;
+  var m=e.data;
+  if(!m||m.jsonrpc!=="2.0"||m.method!=="ui/notifications/tool-result")return;
+  var sc=m.params?.structuredContent;
+  if(!sc)return;
+  render(sc);
+},{passive:true});
+
+function statusColor(s){
+  if(s==="good")return"#3fb950";if(s==="needs-attention")return"#d29922";if(s==="high-risk")return"#f85149";return"#8b949e";
+}
+
+function ringSVG(score,r,sw){
+  var C=2*Math.PI*r,off=C*(1-score/100);
+  var col=statusColor(score>=85?"good":score>=65?"needs-attention":"high-risk");
+  var d=r*2+sw;
+  return'<svg viewBox="0 0 '+d+" "+d+'"><circle cx="'+(r+sw/2)+'" cy="'+(r+sw/2)+'" r="'+r+'" class="ring-bg"/>'+
+    '<circle cx="'+(r+sw/2)+'" cy="'+(r+sw/2)+'" r="'+r+'" class="ring-fg" stroke="'+col+'" stroke-dasharray="'+C+'" stroke-dashoffset="'+off+'"/></svg>';
+}
+
+function render(data){
+  var patient=data.patient||{};
+  var readout=data.readout||{};
+  var cards=readout.cards||[];
+  document.getElementById("loading").style.display="none";
+  document.getElementById("content").style.display="";
+  document.getElementById("title").textContent="Patient Summary: #"+data.subject_id;
+  document.getElementById("summary-text").textContent=data.summary_text||"";
+
+  // Demographics banner
+  var initial=(patient.gender||"?")[0];
+  document.getElementById("banner").innerHTML=
+    '<div class="avatar">'+initial+'</div>'+
+    '<div class="demo-stats">'+
+      '<div class="demo-stat"><span class="label">Patient ID</span><span class="val">#'+patient.subject_id+'</span></div>'+
+      '<div class="demo-stat"><span class="label">Sex</span><span class="val">'+nvl(patient.gender)+'</span></div>'+
+      '<div class="demo-stat"><span class="label">Age</span><span class="val">'+nvl(patient.anchor_age)+'</span></div>'+
+      '<div class="demo-stat"><span class="label">Admissions</span><span class="val">'+nvl(patient.admission_count)+'</span></div>'+
+      '<div class="demo-stat"><span class="label">ICU Stays</span><span class="val">'+nvl(patient.icu_stay_count)+'</span></div>'+
+    '</div>';
+
+  // Score strip
+  var os=readout.overall_score||0;
+  var ost=readout.overall_status||"unknown";
+  var concerns=(readout.insights||[]).slice(0,2).join("; ");
+  document.getElementById("score-strip").innerHTML=
+    '<div class="ring-container">'+ringSVG(os,19,5)+
+    '<span class="ring-label">'+os+'</span></div>'+
+    '<div><div class="score-text status-'+ost+'">Health Score: '+os+'/100 ('+ost.replace("-"," ")+')</div>'+
+    (concerns?'<div class="score-concerns">'+concerns+'</div>':'')+'</div>';
+
+  // Score cards row
+  var scDiv=document.getElementById("score-cards");
+  scDiv.innerHTML="";
+  cards.forEach(function(c){
+    var sc=document.createElement("div");sc.className="sc";
+    sc.innerHTML='<div class="sc-title">'+c.title+'</div>'+
+      '<div class="sc-value status-'+c.status+'">'+nvl(c.value)+'</div>'+
+      '<div class="sc-score" style="color:'+statusColor(c.status)+'">'+c.score+'/100</div>';
+    scDiv.appendChild(sc);
+  });
+
+  // Focused admission
+  var adm=data.selected_admission;
+  if(adm){
+    document.getElementById("adm-section").style.display="";
+    var ac=document.getElementById("adm-card");
+    ac.innerHTML='<div class="adm-card"><div class="adm-grid">'+
+      '<span class="adm-label">HADM ID</span><span class="adm-value">'+adm.hadm_id+'</span>'+
+      '<span class="adm-label">Type</span><span class="adm-value">'+nvl(adm.admission_type)+'</span>'+
+      '<span class="adm-label">Admitted</span><span class="adm-value">'+nvl(adm.admittime)+'</span>'+
+      '<span class="adm-label">Discharged</span><span class="adm-value">'+nvl(adm.dischtime)+'</span>'+
+      '<span class="adm-label">Race</span><span class="adm-value">'+nvl(adm.race)+'</span>'+
+      '<span class="adm-label">Insurance</span><span class="adm-value">'+nvl(adm.insurance)+'</span>'+
+      '</div></div>';
+  }
+
+  // Diagnoses
+  var dx=data.diagnoses||[];
+  if(dx.length){
+    document.getElementById("dx-section").style.display="";
+    var dl=document.getElementById("dx-list");dl.innerHTML="";
+    dx.forEach(function(d){
+      var li=document.createElement("li");
+      li.innerHTML='<span class="dx-seq">'+d.seq_num+'</span>'+
+        '<span>'+esc(d.diagnosis_title||d.icd_code)+'</span>'+
+        '<span class="dx-code">'+d.icd_code+'</span>';
+      dl.appendChild(li);
+    });
+  }
+
+  // Chronic conditions
+  var cc=data.chronic_conditions||[];
+  if(cc.length){
+    document.getElementById("chronic-section").style.display="";
+    var cl=document.getElementById("chronic-list");cl.innerHTML="";
+    cc.forEach(function(c){
+      var li=document.createElement("li");
+      li.innerHTML='<span>'+esc(c.diagnosis_title)+'</span><span class="dx-code">('+c.mentions+' mention'+(c.mentions>1?"s":"")+')</span>';
+      cl.appendChild(li);
+    });
+  }
+
+  // Medications
+  var meds=data.medications||[];
+  if(meds.length){
+    document.getElementById("med-section").style.display="";
+    var ml=document.getElementById("med-list");ml.innerHTML="";
+    meds.forEach(function(m){
+      var li=document.createElement("li");
+      var dose=((m.dose_val_rx||"")+" "+(m.dose_unit_rx||"")).trim();
+      li.innerHTML='<div class="med-name">'+esc(m.drug)+'</div>'+
+        '<div class="med-detail">'+(dose||"")+(m.route?" \u00B7 "+m.route:"")+(m.starttime?" \u00B7 "+m.starttime:"")+'</div>';
+      ml.appendChild(li);
+    });
+  }
+
+  // Labs
+  var labs=data.latest_labs||[];
+  if(labs.length){
+    document.getElementById("labs-section").style.display="";
+    var ltb=document.getElementById("labs-tbody");ltb.innerHTML="";
+    labs.forEach(function(r){
+      var tr=document.createElement("tr");
+      var flag=r.flag||"normal";
+      var fc=flag.toLowerCase()==="normal"?"":"flag-abnormal";
+      tr.innerHTML='<td>'+nvl(r.display_name)+'</td><td>'+nvl(r.value)+" "+(r.unit||"")+'</td>'+
+        '<td class="'+fc+'">'+flag+'</td><td class="time-cell">'+nvl(r.charttime)+'</td>';
+      ltb.appendChild(tr);
+    });
+  }
+
+  // Vitals
+  var vitals=data.latest_vitals||[];
+  if(vitals.length){
+    document.getElementById("vitals-section").style.display="";
+    var vtb=document.getElementById("vitals-tbody");vtb.innerHTML="";
+    vitals.forEach(function(r){
+      var tr=document.createElement("tr");
+      tr.innerHTML='<td>'+nvl(r.display_name)+'</td><td>'+nvl(r.value)+" "+(r.unit||"")+'</td>'+
+        '<td class="time-cell">'+nvl(r.charttime)+'</td>';
+      vtb.appendChild(tr);
+    });
+  }
+}
+function nvl(v){return v==null?"\u2014":String(v)}
+function esc(s){if(!s)return"\u2014";var d=document.createElement("span");d.textContent=s;return d.innerHTML}
+</script>
+</body>
+</html>
