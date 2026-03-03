@@ -43,13 +43,24 @@ tr:hover td{background:#161b22}
 </div>
 <script>
 var allRows=[];
+function unwrap(o){if(!o)return null;return o.structuredContent||o}
+
+var _init=unwrap(window.openai&&window.openai.toolOutput);
+if(_init)render(_init);
+
+window.addEventListener("openai:set_globals",function(e){
+  var o=unwrap(e.detail&&e.detail.globals&&e.detail.globals.toolOutput);
+  if(o)render(o);
+},{passive:true});
+
 window.addEventListener("message",function(e){
   if(e.source!==window.parent)return;
   var m=e.data;
-  if(!m||m.jsonrpc!=="2.0"||m.method!=="ui/notifications/tool-result")return;
-  var sc=m.params?.structuredContent;
-  if(!sc)return;
-  render(sc);
+  if(!m||m.jsonrpc!=="2.0")return;
+  if(m.method==="ui/notifications/tool-result"){
+    var sc=m.params&&m.params.structuredContent;
+    if(sc)render(sc);
+  }
 },{passive:true});
 
 function render(data){
