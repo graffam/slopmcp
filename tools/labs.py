@@ -22,6 +22,7 @@ def register(mcp: FastMCP) -> None:
             "openai/toolInvocation/invoked": "Lab results ready (v4)",
             "ui": {"resourceUri": "ui://mimic-iv-demo/lab-results.html"},
             "ui/resourceUri": "ui://mimic-iv-demo/lab-results.html",
+            "openai/widgetAccessible": True,
             "openai/outputTemplate": "ui://mimic-iv-demo/lab-results.html",
         },
     )
@@ -157,6 +158,7 @@ def register(mcp: FastMCP) -> None:
             "openai/toolInvocation/invoked": "Lab trend ready (v4)",
             "ui": {"resourceUri": "ui://mimic-iv-demo/lab-trend.html"},
             "ui/resourceUri": "ui://mimic-iv-demo/lab-trend.html",
+            "openai/widgetAccessible": True,
             "openai/outputTemplate": "ui://mimic-iv-demo/lab-trend.html",
         },
     )

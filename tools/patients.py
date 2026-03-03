@@ -21,6 +21,7 @@ def register(mcp: FastMCP) -> None:
             "openai/toolInvocation/invoked": "Patient search complete (v4)",
             "ui": {"resourceUri": "ui://mimic-iv-demo/patients.html"},
             "ui/resourceUri": "ui://mimic-iv-demo/patients.html",
+            "openai/widgetAccessible": True,
             "openai/outputTemplate": "ui://mimic-iv-demo/patients.html",
         },
     )

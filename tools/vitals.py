@@ -35,6 +35,7 @@ def register(mcp: FastMCP) -> None:
             "openai/toolInvocation/invoked": "Vital signs ready (v4)",
             "ui": {"resourceUri": "ui://mimic-iv-demo/vitals.html"},
             "ui/resourceUri": "ui://mimic-iv-demo/vitals.html",
+            "openai/widgetAccessible": True,
             "openai/outputTemplate": "ui://mimic-iv-demo/vitals.html",
         },
     )
@@ -184,6 +185,7 @@ def register(mcp: FastMCP) -> None:
             "openai/toolInvocation/invoked": "ICU stays loaded",
             "ui": {"resourceUri": "ui://mimic-iv-demo/icu-stays.html"},
             "ui/resourceUri": "ui://mimic-iv-demo/icu-stays.html",
+            "openai/widgetAccessible": True,
             "openai/outputTemplate": "ui://mimic-iv-demo/icu-stays.html",
         },
     )

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-MIME_TYPE = "text/html+skybridge"
+MIME_TYPE = "text/html"
 WIDGETS_DIR = Path(__file__).resolve().parent.parent / "widgets"
 
 # Map widget name -> resource URI used in tool meta
@@ -39,6 +39,16 @@ def _register_widget(
             name=name,
             description=f"UI widget for {name.replace('_', ' ')}",
             mime_type=MIME_TYPE,
+            meta={
+                "openai/widgetDescription": (
+                    f"Interactive widget for {name.replace('_', ' ')}."
+                ),
+                "openai/widgetPrefersBorder": True,
+                "openai/widgetCSP": {
+                    "connect_domains": [],
+                    "resource_domains": [],
+                },
+            },
         )
         def _read() -> str:
             return path.read_text()

@@ -21,6 +21,7 @@ def register(mcp: FastMCP) -> None:
             "openai/toolInvocation/invoked": "Admissions loaded",
             "ui": {"resourceUri": "ui://mimic-iv-demo/admissions.html"},
             "ui/resourceUri": "ui://mimic-iv-demo/admissions.html",
+            "openai/widgetAccessible": True,
             "openai/outputTemplate": "ui://mimic-iv-demo/admissions.html",
         },
     )
@@ -114,6 +115,7 @@ def register(mcp: FastMCP) -> None:
             "openai/toolInvocation/invoked": "Diagnoses loaded",
             "ui": {"resourceUri": "ui://mimic-iv-demo/diagnoses.html"},
             "ui/resourceUri": "ui://mimic-iv-demo/diagnoses.html",
+            "openai/widgetAccessible": True,
             "openai/outputTemplate": "ui://mimic-iv-demo/diagnoses.html",
         },
     )
@@ -189,6 +191,7 @@ def register(mcp: FastMCP) -> None:
             "openai/toolInvocation/invoked": "Prescriptions loaded",
             "ui": {"resourceUri": "ui://mimic-iv-demo/prescriptions.html"},
             "ui/resourceUri": "ui://mimic-iv-demo/prescriptions.html",
+            "openai/widgetAccessible": True,
             "openai/outputTemplate": "ui://mimic-iv-demo/prescriptions.html",
         },
     )
