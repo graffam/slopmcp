@@ -71,7 +71,6 @@ def _transport_security_settings() -> TransportSecuritySettings:
 mcp = FastMCP(
     "mimic-iv-demo",
     stateless_http=True,
-    json_response=True,
     streamable_http_path="/",
     transport_security=_transport_security_settings(),
 )

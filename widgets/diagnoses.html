@@ -34,6 +34,7 @@ function extractData(payload){
   if(typeof payload!=="object")return null;
   if(payload.structuredContent)return payload.structuredContent;
   if(payload.toolOutput)return extractData(payload.toolOutput);
+  if(payload.toolResponseMetadata)return extractData(payload.toolResponseMetadata);
   if(payload.result)return extractData(payload.result);
   if(payload.params)return extractData(payload.params);
   if(payload.globals&&payload.globals.toolOutput)return extractData(payload.globals.toolOutput);
@@ -48,11 +49,13 @@ function maybeRender(payload){
 }
 function hydrateFromHost(){
   if(maybeRender(window.openai&&window.openai.toolOutput))return;
+  if(maybeRender(window.openai&&window.openai.toolResponseMetadata))return;
   if(maybeRender(window.openai&&window.openai.globals&&window.openai.globals.toolOutput))return;
   var attempts=0;
   var timer=setInterval(function(){
     attempts+=1;
     if(maybeRender(window.openai&&window.openai.toolOutput))return clearInterval(timer);
+    if(maybeRender(window.openai&&window.openai.toolResponseMetadata))return clearInterval(timer);
     if(maybeRender(window.openai&&window.openai.globals&&window.openai.globals.toolOutput))return clearInterval(timer);
     if(attempts>=80)clearInterval(timer);
   },100);
